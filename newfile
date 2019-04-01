@@ -1,0 +1,95 @@
+   String oracleURL = Config.getProperty("dbendev07");
+        String oracleUsername = Config.getProperty("dblogin");
+        String oraclePassword = Config.getProperty("dbpasswd");
+
+        String passqueryhere = "\n" +
+                "Select * from TSER_QRM_PARM tp\n" +
+                "join qrm_parm_item qp\n" +
+                "on tp.TSER_ITEM_ID = qp.TSER_ITEM_ID\n" +
+                "--where theo_model_code =  '49'\n" +
+                "--and tp.TSER_ITEM_ID = 72028\n" +
+                "--and tp.OBSR_DT = '2019-02-11'\n" +
+                "--and NUM_DESC_VAL between '1' and '4'\n" +
+                "and qp.TSER_ITEM_ID  in (57583,57585,57588)";
+
+        Connection connection = DriverManager.getConnection(oracleURL, oracleUsername, oraclePassword);
+        Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        statement.execute("set schema endev07");
+        //setshemaendev07("set schema endev07", oracleUsername, oraclePassword);
+        ResultSet resultSet = statement.executeQuery(passqueryhere);
+
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        int columnCount = metaData.getColumnCount();
+
+        List<Map<String, Object>> table = new ArrayList<>();
+        while (resultSet.next()) {
+            Map<String, Object> map = new TreeMap<>();
+            for (int column = 1; column <= columnCount; column++) {
+                map.put(metaData.getColumnName(column), resultSet.getObject(column));
+
+            }
+            table.add(map);
+        }
+//
+        for (Map<String, Object> map : table) {
+
+            System.out.println(map);
+        }
+        resultSet.close();
+        statement.close();
+        connection.close();
+
+
+        String oracleURL2 = Config.getProperty("dbentst12");
+        Connection connection2 = DriverManager.getConnection(oracleURL2, oracleUsername, oraclePassword);
+
+        Statement statement2 = connection2.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        statement2.execute("set schema entst12");
+        //setshemaendev07("set schema endev07", oracleUsername, oraclePassword);
+
+        ResultSet resultSet2 = statement2.executeQuery(passqueryhere);
+
+        ResultSetMetaData metaData2 = resultSet2.getMetaData();
+        int columnCount2 = metaData2.getColumnCount();
+
+        List<Map<String, Object>> table2 = new ArrayList<>();
+
+        while (resultSet2.next()) {
+            Map<String, Object> map = new TreeMap<>();
+
+            for (int column = 1; column <= columnCount2; column++) {
+
+                map.put(metaData2.getColumnName(column), resultSet2.getObject(column));
+
+            }
+            table2.add(map);
+        }
+//
+        for (Map<String, Object> map : table2) {
+
+            System.out.println(map);
+        }
+
+        if(table.size()==table2.size()){
+            System.out.println("The size of two tables equal ");
+            Thread.sleep( 100);
+            System.out.println("Proceeding with comparison each values in tables");
+            Thread.sleep(100);
+
+            for(int i = 0; i < table.size(); i++){
+                for(int j = 0;j < table.get(i).size();j++) {
+
+
+                    if (table.get(j).keySet().equals(table2.get(j).keySet())) {
+                        System.out.println(table.get(j).values().toString().equals(table2.get(j).values().toString()));
+                        System.out.println("All values in two database identical: ");
+                    }
+
+                }
+
+            }
+        }else{
+            System.out.println("size is different");
+        }
+
+    }}
