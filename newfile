@@ -1,3 +1,4 @@
+   //some another comments
    String oracleURL = Config.getProperty("dbendev07");
         String oracleUsername = Config.getProperty("dblogin");
         String oraclePassword = Config.getProperty("dbpasswd");
