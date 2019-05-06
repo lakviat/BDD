@@ -3,6 +3,9 @@ WE WANT TO REACH MORE DYNAMIC CODE IN THIS TASK
 THE CODE SHOULD HAVE TO BE ABLE TO IDENTIFY HOW MANY COLUMNS ARE THERE DYNAMICALLY, AND WRITE INTO THE EXCEL FILE 
 TO ACCOMPLISH THIS CODE WE NEED TO FIRST RESOLVE DEPENDENCIES FOR APACHE POI AND JDBC
 
+*****************************************************************************************************************************
+RESOLVIGN DEPENDENCIES FOR MAVEN
+mvnrepository.com
 // FOR APACHE POI
 <!-- https://mvnrepository.com/artifact/org.apache.poi/poi -->
 <dependency>
@@ -30,19 +33,17 @@ TO ACCOMPLISH THIS CODE WE NEED TO FIRST RESOLVE DEPENDENCIES FOR APACHE POI AND
 *****************************************************************************************************************************
 CREATE PACKAGE CALLED UTILITIES/DBUTILITY CLASS below code will go there,
 this code is implementation part of Database Connection
-package utilities;
 
+package utilities;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 public class DBUtility {
     private static Connection connection;
     private static Statement statement;
     private static ResultSet resultSet;
-
     public static void openConnection(DBType type) throws SQLException {
 
         switch (type){
@@ -101,6 +102,7 @@ public class DBUtility {
 }
 
 *****************************************************************************************************************************
+THIS CODE CONNECTS TO DATABSE AND PULLS OUT THE DATA FROM IT
 
 public class JDBCExample {
     public static void main(String[] args) throws SQLException {
@@ -140,6 +142,7 @@ public class JDBCExample {
         
    *****************************************************************************************************************************
 APACHE POI PART
+THIS PART WILL ALLOW YOU TO READ AND WRTIE TO EXCEL FILE
 
 public class TestPurpose2 {
     public static void main(String[] args) throws SQLException{
