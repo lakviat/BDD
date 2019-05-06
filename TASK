@@ -1,0 +1,187 @@
+THE MAIN TASK HERE IS TO CONNECT TO DATABASE, PULL DATA, AND WRITE IT INTO EXCEL FILE
+WE WANT TO REACH MORE DYNAMIC CODE IN THIS TASK
+THE CODE SHOULD HAVE TO BE ABLE TO IDENTIFY HOW MANY COLUMNS ARE THERE DYNAMICALLY, AND WRITE INTO THE EXCEL FILE 
+TO ACCOMPLISH THIS CODE WE NEED TO FIRST RESOLVE DEPENDENCIES FOR APACHE POI AND JDBC
+
+// FOR APACHE POI
+<!-- https://mvnrepository.com/artifact/org.apache.poi/poi -->
+<dependency>
+    <groupId>org.apache.poi</groupId>
+    <artifactId>poi</artifactId>
+    <version>4.1.0</version>
+</dependency>
+
+//XML BEANS FOR APACHE POI
+<!-- https://mvnrepository.com/artifact/org.apache.xmlbeans/xmlbeans -->
+<dependency>
+    <groupId>org.apache.xmlbeans</groupId>
+    <artifactId>xmlbeans</artifactId>
+    <version>3.1.0</version>
+</dependency>
+
+//FOR DATABASE CONNECTIONS JDBC
+<!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>8.0.16</version>
+</dependency>
+
+*****************************************************************************************************************************
+CREATE PACKAGE CALLED UTILITIES/DBUTILITY CLASS below code will go there,
+this code is implementation part of Database Connection
+package utilities;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class DBUtility {
+    private static Connection connection;
+    private static Statement statement;
+    private static ResultSet resultSet;
+
+    public static void openConnection(DBType type) throws SQLException {
+
+        switch (type){
+            case ORACLE:
+                connection = DriverManager.getConnection(Config.getProperty("oracle.url"),
+                        Config.getProperty("oracle.username"),
+                        Config.getProperty("oracle.password"));
+                break;
+            case MySQL:
+                break;
+            default:
+                connection = null;
+        }
+    }
+
+    public static List<Map<String, Object>> executeSQLQuery(String query) throws SQLException {
+        statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        resultSet = statement.executeQuery(query);
+
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        int columnCount = metaData.getColumnCount();
+        List<Map<String, Object>> table = new ArrayList<>();
+
+        while(resultSet.next()){
+            Map<String, Object> map = new HashMap<>();
+
+            for(int column =1; column<=columnCount; column++){
+
+                map.put(metaData.getColumnName(column), resultSet.getObject(column));
+
+            }
+            table.add(map);
+        }
+        return table;
+
+    }
+
+    public static void closeConnection(){
+
+        try {
+            if(resultSet!=null){
+                resultSet.close();
+            }
+            if(statement!=null){
+                statement.close();
+            }
+            if(connection!=null){
+                connection.close();
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+}
+
+*****************************************************************************************************************************
+
+public class JDBCExample {
+    public static void main(String[] args) throws SQLException {
+        String oracleURL = "jdbc:oracle:thin:@ec2-52-14-95-169.us-east-2.compute.amazonaws.com:1521:xe";
+        String oracleUsername = "hr";
+        String oraclePassword = "hr";
+        /*
+        * 3 main classes in JDBC
+        *
+        * 1. Connection
+        * 2. Statement
+        * 3. ResultSet
+        * */
+
+        Connection connection = DriverManager.getConnection(oracleURL, oracleUsername, oraclePassword );
+        Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        ResultSet resultSet = statement.executeQuery("select employee_id, first_name, last_name from employees");
+
+
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        int columnCount = metaData.getColumnCount();
+
+
+        List<Map<String, Object>> table = new ArrayList<>();
+
+        while(resultSet.next()){
+            Map<String, Object> map = new HashMap<>();
+
+            for(int column =1; column<=columnCount; column++){
+
+                map.put(metaData.getColumnName(column), resultSet.getObject(column));
+
+            }
+            table.add(map);
+            System.out.println(table)
+        }
+        
+   *****************************************************************************************************************************
+APACHE POI PART
+
+public class TestPurpose2 {
+    public static void main(String[] args) throws SQLException{
+        ArrayList<String> result = new ArrayList<>();
+        String passquery = Config.getProperty("ERS1147_query");
+        Connection connection = DriverManager.getConnection(db.endev07, db.login, db.password);
+        Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        statement.execute("set schema endev07");
+        ResultSet resultSet = statement.executeQuery(passquery);
+        //this part iterates on database, and writes into the LIST
+        while(resultSet.next()) {
+            result.add(resultSet.getString(1) + " ");
+        }
+        //AT THIS PART WE START DOING EXCEL WRITING
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFSheet sheet = workbook.createSheet("Employee Data");
+
+        XSSFRow row = sheet.createRow(0);
+        XSSFCell cell = row.createCell(0);
+        cell.setCellValue("Hello1");
+
+        row = sheet.createRow(1);
+        cell = row.createCell(0);
+        cell.setCellValue("Hello2");
+
+        for (int i = 2; i <= result.size() -1; i++ ) {
+            row = sheet.createRow(i);
+            cell = row.createCell(0);
+            cell.setCellValue(result.get(i).trim().toString());
+        }
+        try
+        {
+            FileOutputStream out = new FileOutputStream(new File("C:\\Intellija\\anothernew\\src\\test\\java\\Example_DB_EXCEL.xlsx"));
+            workbook.write(out);
+            out.close();
+            System.out.println("FILE written successfully.");
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
+
+    }
+}
